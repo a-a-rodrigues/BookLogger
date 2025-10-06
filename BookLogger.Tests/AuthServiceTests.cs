@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-using BookLogger.Data;
-using BookLogger.Data.Models;
+﻿using BookLogger.Data;
 using Microsoft.EntityFrameworkCore;
 
 public class AuthServiceTests

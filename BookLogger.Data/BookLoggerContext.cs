@@ -25,15 +25,15 @@ namespace BookLogger.Data
                 b.Property(u => u.PasswordHash).IsRequired();
             });
 
-            modelBuilder.Entity<Book>(b =>
-            {
-                b.Property(x => x.Title).IsRequired();
+            modelBuilder.Entity<Book>()
+                .HasOne(b => b.Metadata)
+                .WithMany(m => m.UserBooks)
+                .HasForeignKey(b => b.BookMetadataId);
 
-                b.HasOne(bk => bk.User)
-                 .WithMany(u => u.Books)
-                 .HasForeignKey(bk => bk.UserId)
-                 .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.Entity<Book>()
+                .HasOne(b => b.User)
+                .WithMany(u => u.Books)
+                .HasForeignKey(b => b.UserId);
         }
 
     }
