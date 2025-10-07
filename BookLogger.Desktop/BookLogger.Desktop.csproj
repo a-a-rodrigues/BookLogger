@@ -9,8 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Views\" />
-    <Folder Include="ViewModels\" />
+    <None Remove="Views\logo.JPG" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Views\logo.JPG" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Images\logo.JPG">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
