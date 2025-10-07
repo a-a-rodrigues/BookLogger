@@ -121,4 +121,17 @@ public class BookServiceTests
         Assert.Equal(2, tolkienBooks.Count);
         Assert.Single(duneBooks);
     }
+
+    [Fact]
+    public async Task AddBookAsync_ShouldThrowException_WhenTitleOrAuthorMissing()
+    {
+        var service = await GetInMemoryBookServiceAsync();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.AddBookAsync(1, "", "Some Author")); 
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.AddBookAsync(1, "Some Title", "")); 
+    }
+
 }
