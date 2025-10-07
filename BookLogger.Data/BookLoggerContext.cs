@@ -12,6 +12,8 @@ namespace BookLogger.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Book> Books { get; set; }
+        public DbSet<BookMetadata> BookMetadatas { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

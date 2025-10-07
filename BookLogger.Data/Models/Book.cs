@@ -12,8 +12,8 @@ namespace BookLogger.Data.Models
         public int BookMetadataId { get; set; }
         public BookMetadata Metadata { get; set; }
 
-        public string Rating { get; set; }
-        public string Review { get; set; }
+        public string? Rating { get; set; }
+        public string? Review { get; set; }
         public DateTime? DateRead { get; set; }
     }
 }
