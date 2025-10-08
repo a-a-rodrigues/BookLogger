@@ -1,36 +1,35 @@
 ﻿<Page x:Class="BookLogger.Desktop.Views.LoginView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="clr-namespace:BookLogger.Desktop.Views"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:local="clr-namespace:BookLogger.Desktop"
       mc:Ignorable="d"
       Title="LoginView" Height="450" Width="800">
 
     <Grid>
-    <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="65*" />
-        <ColumnDefinition Width="35*" />
-    </Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6*"/>
+            <ColumnDefinition Width="4*"/>
+        </Grid.ColumnDefinitions>
 
-    <!-- Left image section -->
-    <Border Grid.Column="0" Background="LightGray">
-        <Image Source="/Views/logo.JPG" Stretch="Uniform" HorizontalAlignment="Left"/>
-    </Border>
+        <!-- Left panel for logo -->
+        <Border Grid.Column="0" Background="LightGray">
+            <Image Source="/Views/logo.JPG" Stretch="Uniform"/>
+        </Border>
 
-    <!-- Right login section -->
-    <Border Grid.Column="1" Padding="30" Background="White">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right">
-            <TextBlock Text="Username" Margin="5,0,0,5"/>
-            <TextBox Name="UsernameBox" Margin="5,0,0,10" Width="200"/>
+        <!-- Right panel for login -->
+        <Border Grid.Column="1" Padding="30" Background="White">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="250">
+                <TextBlock Text="Username" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Password" Margin="5,0,0,5"/>
-            <PasswordBox Name="PasswordBox" Margin="5,0,0,20" Width="200"/>
+                <TextBlock Text="Password" Margin="0,0,0,5"/>
+                <PasswordBox PasswordChanged="PasswordBox_PasswordChanged" Margin="0,0,0,20"/>
 
-            <Button Content="Login" Margin="0,0,0,10" Width="200"/>
-            <Button Content="Create Account" Width="200"/>
-        </StackPanel>
-    </Border>
-</Grid>
-
+                <Button Content="Login" Command="{Binding LoginCommand}" Margin="0,0,0,10"/>
+                <Button Content="Register" Command="{Binding RegisterCommand}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
 </Page>
