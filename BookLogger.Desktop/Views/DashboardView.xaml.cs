@@ -1,28 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using BookLogger.Desktop.ViewModels;
+using BookLogger.Data;
+using BookLogger.Data.Models;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace BookLogger.Desktop.Views
 {
-    /// <summary>
-    /// Interaction logic for DashboardView.xaml
-    /// </summary>
-    public partial class DashboardView : Page
+    public partial class DashboardView : UserControl
     {
-        public DashboardView()
+        public DashboardView(BookLoggerContext context, User currentUser)
         {
             InitializeComponent();
+            DataContext = new DashboardViewModel(context, currentUser);
         }
     }
 }

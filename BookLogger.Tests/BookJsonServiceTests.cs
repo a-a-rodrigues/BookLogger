@@ -21,7 +21,7 @@ public class BookJsonServiceTests
             {
                 Id = 1,
                 UserId = 1,
-                Rating = "5",
+                Rating = 5,
                 Review = "Excellent read.",
                 DateRead = DateTime.Now,
                 Metadata = new BookMetadata
@@ -44,7 +44,7 @@ public class BookJsonServiceTests
             Assert.Single(importedBooks);
             Assert.Equal("1984", importedBooks[0].Metadata.Title);
             Assert.Equal("George Orwell", importedBooks[0].Metadata.Author);
-            Assert.Equal("5", importedBooks[0].Rating);
+            Assert.Equal(5, importedBooks[0].Rating);
             Assert.Equal("Excellent read.", importedBooks[0].Review);
         }
         finally

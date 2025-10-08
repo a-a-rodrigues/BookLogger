@@ -1,5 +1,6 @@
-﻿using System.Windows.Controls;
-using BookLogger.Desktop.ViewModels;
+﻿using BookLogger.Desktop.ViewModels;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace BookLogger.Desktop.Views
 {
@@ -11,12 +12,10 @@ namespace BookLogger.Desktop.Views
             DataContext = new LoginViewModel();
         }
 
-        private void PasswordBox_PasswordChanged(object sender, System.Windows.RoutedEventArgs e)
+        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            if (DataContext is LoginViewModel vm && sender is PasswordBox pb)
-            {
-                vm.Password = pb.Password;
-            }
+            if (DataContext is LoginViewModel vm)
+                vm.Password = ((PasswordBox)sender).Password;
         }
     }
 }

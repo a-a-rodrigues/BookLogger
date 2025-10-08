@@ -85,11 +85,11 @@ public class BookServiceTests
         var service = await GetInMemoryBookServiceAsync();
         var book = await service.AddBookAsync(1, "Brave New World", "Aldous Huxley");
 
-        var updated = await service.UpdateBookAsync(book.Id, rating: "5/5", review: "Classic", dateRead: DateTime.Today);
+        var updated = await service.UpdateBookAsync(book.Id, rating: 5, review: "Classic", dateRead: DateTime.Today);
         var fetched = await service.GetBookByIdAsync(book.Id);
 
         Assert.True(updated);
-        Assert.Equal("5/5", fetched!.Rating);
+        Assert.Equal(5, fetched!.Rating);
         Assert.Equal("Classic", fetched.Review);
         Assert.NotNull(fetched.DateRead);
     }

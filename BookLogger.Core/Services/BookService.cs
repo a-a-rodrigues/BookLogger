@@ -58,7 +58,7 @@ public class BookService
             .FirstOrDefaultAsync(b => b.Id == bookId);
     }
 
-    public async Task<bool> UpdateBookAsync(int bookId, string? rating = null, string? review = null, DateTime? dateRead = null)
+    public async Task<bool> UpdateBookAsync(int bookId, int? rating = null, string? review = null, DateTime? dateRead = null)
     {
         var book = await _context.Books.FindAsync(bookId);
         if (book == null) return false;

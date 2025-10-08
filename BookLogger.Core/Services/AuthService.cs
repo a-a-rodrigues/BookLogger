@@ -46,8 +46,6 @@ public class AuthService
         return user;
     }
 
-
-
     public async Task<User> LoginAsync(string username, string password)
     {
         var user = await _context.Users.SingleOrDefaultAsync(u => u.Username == username);

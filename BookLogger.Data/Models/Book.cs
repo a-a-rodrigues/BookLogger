@@ -12,7 +12,8 @@ namespace BookLogger.Data.Models
         public int BookMetadataId { get; set; }
         public BookMetadata Metadata { get; set; }
 
-        public string? Rating { get; set; }
+        [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
+        public int? Rating { get; set; } 
         public string? Review { get; set; }
         public DateTime? DateRead { get; set; }
     }

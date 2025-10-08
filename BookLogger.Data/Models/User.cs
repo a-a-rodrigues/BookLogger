@@ -13,10 +13,10 @@ namespace BookLogger.Data.Models
         [Required]
         public string PasswordHash { get; set; }
 
-        // If you have no existing user rows in the DB, you can add [Required] here.
-        // If you already have data, leave off [Required] and make the column nullable first.
         [EmailAddress]
         public string Email { get; set; }
+
+        public string? ProfilePicturePath { get; set; }
 
         public ICollection<Book> Books { get; set; } = new List<Book>();
     }

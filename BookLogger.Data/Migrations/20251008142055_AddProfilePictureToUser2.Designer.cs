@@ -3,6 +3,7 @@ using System;
 using BookLogger.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookLogger.Data.Migrations
 {
     [DbContext(typeof(BookLoggerContext))]
-    partial class BookLoggerContextModelSnapshot : ModelSnapshot
+    [Migration("20251008142055_AddProfilePictureToUser2")]
+    partial class AddProfilePictureToUser2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -29,8 +32,8 @@ namespace BookLogger.Data.Migrations
                     b.Property<DateTime?>("DateRead")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("Rating")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Rating")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Review")
                         .HasColumnType("TEXT");

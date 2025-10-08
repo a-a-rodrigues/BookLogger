@@ -38,5 +38,11 @@ namespace BookLogger.Data
                 .HasForeignKey(b => b.UserId);
         }
 
+        public async Task ClearDatabaseAsync()
+        {
+            // Drop and recreate the database schema
+            await Database.EnsureDeletedAsync();
+            await Database.EnsureCreatedAsync();
+        }
     }
 }
