@@ -3,6 +3,8 @@ using BookLogger.Data;
 using BookLogger.Desktop.Views;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -15,14 +17,16 @@ namespace BookLogger.Desktop.ViewModels
 
         public ICommand LoginCommand { get; }
         public ICommand RegisterCommand { get; }
+        public ICommand ResetDatabaseCommand { get; }
 
         private readonly AuthService _authService;
+        private readonly string _dbPath;
 
         public LoginViewModel()
         {
-            var dbPath = @"C:/Users/Augie/Documents/Github/BookLogger/BookLogger.Data/booklogger.db";                
+            _dbPath = @"C:/Users/Augie/Documents/Github/BookLogger/BookLogger.Data/booklogger.db";
             var options = new DbContextOptionsBuilder<BookLoggerContext>()
-                .UseSqlite($"Filename={dbPath}")
+                .UseSqlite($"Filename={_dbPath}")
                 .Options;
 
             var context = new BookLoggerContext(options);
@@ -35,9 +39,10 @@ namespace BookLogger.Desktop.ViewModels
                 {
                     var user = await _authService.LoginAsync(Username, Password);
                     MessageBox.Show($"Welcome back, {user.Username}!", "Login Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+
                     var mainWindow = Application.Current.Windows
-                    .OfType<MainWindow>()
-                    .FirstOrDefault();
+                        .OfType<MainWindow>()
+                        .FirstOrDefault();
 
                     if (mainWindow != null)
                     {
@@ -53,18 +58,52 @@ namespace BookLogger.Desktop.ViewModels
                 }
             });
 
-            // Register button
-            RegisterCommand = new RelayCommand(async _ =>
+            // Register button: navigate to UserCreationView
+            RegisterCommand = new RelayCommand(_ =>
             {
-                try
+                var mainWindow = Application.Current.Windows
+                    .OfType<MainWindow>()
+                    .FirstOrDefault();
+
+                if (mainWindow != null)
                 {
-                    // For demo, we just auto-fill confirmPassword same as password
-                    var user = await _authService.RegisterAsync(Username, "example2@example.com", Password, Password);
-                    MessageBox.Show($"User {user.Username} registered!", "Register", MessageBoxButton.OK, MessageBoxImage.Information);
+                    var userCreationPage = new UserCreationView();
+                    mainWindow.MainFrame.Navigate(userCreationPage);
                 }
-                catch (Exception ex)
+            });
+
+            // Reset Database button
+            ResetDatabaseCommand = new RelayCommand(_ =>
+            {
+                var result = MessageBox.Show(
+                    "Are you sure you want to delete all data? This action cannot be undone.",
+                    "Confirm Reset",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
                 {
-                    MessageBox.Show(ex.Message, "Register Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    try
+                    {
+                        if (File.Exists(_dbPath))
+                        {
+                            File.Delete(_dbPath);
+                        }
+
+                        using (var newContext = new BookLoggerContext(
+                            new DbContextOptionsBuilder<BookLoggerContext>()
+                                .UseSqlite($"Filename={_dbPath}")
+                                .Options))
+                        {
+                            newContext.Database.EnsureCreated();
+                        }
+
+                        MessageBox.Show("Database has been successfully reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to reset database: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             });
         }
