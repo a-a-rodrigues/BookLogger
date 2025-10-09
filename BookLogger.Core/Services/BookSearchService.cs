@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -12,6 +13,7 @@ namespace BookLogger.Core.Services
     {
         private readonly HttpClient _httpClient;
         private const string BaseUrl = "https://openlibrary.org/search.json";
+        private const string CoverBaseUrl = "https://covers.openlibrary.org/b/id/";
 
         public BookSearchService()
         {
@@ -22,7 +24,7 @@ namespace BookLogger.Core.Services
         /// Searches for books using the Open Library API.
         /// </summary>
         /// <param name="query">The search text entered by the user.</param>
-        /// <returns>A list of simplified BookResult objects.</returns>
+        /// <returns>A list of simplified BookResult objects including cover image URLs.</returns>
         public async Task<List<BookResult>> SearchBooksAsync(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -52,7 +54,10 @@ namespace BookLogger.Core.Services
                 {
                     Title = doc.Title ?? "Untitled",
                     Author = doc.AuthorName?.FirstOrDefault() ?? "Unknown Author",
-                    FirstPublishYear = doc.FirstPublishYear ?? 0
+                    FirstPublishYear = doc.FirstPublishYear ?? 0,
+                    ImageUrl = doc.CoverId.HasValue
+                        ? $"{CoverBaseUrl}{doc.CoverId}-M.jpg"  // Medium-sized cover
+                        : string.Empty
                 }).ToList();
             }
             catch
@@ -81,12 +86,19 @@ namespace BookLogger.Core.Services
 
         [JsonPropertyName("first_publish_year")]
         public int? FirstPublishYear { get; set; }
+
+        [JsonPropertyName("cover_i")]
+        public int? CoverId { get; set; } // New: Cover image ID
     }
 
     public class BookResult
     {
-        public string Title { get; set; }
-        public string Author { get; set; }
+        public string Title { get; set; } = "";
+        public string Author { get; set; } = "";
         public int FirstPublishYear { get; set; }
+
+        // --- New Image Properties ---
+        public string ImageUrl { get; set; } = "";       // Online image source
+        public string? LocalImagePath { get; set; }      // Cached local copy
     }
 }

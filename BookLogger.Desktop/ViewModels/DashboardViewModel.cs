@@ -3,7 +3,9 @@ using BookLogger.Data;
 using BookLogger.Data.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -14,6 +16,8 @@ namespace BookLogger.Desktop.ViewModels
     {
         private readonly BookLoggerContext _context;
         private readonly BookSearchService _bookSearchService;
+        private readonly HttpClient _httpClient;
+        private readonly string _imageFolder;
         private User _currentUser;
 
         // --- Constructor ---
@@ -22,19 +26,31 @@ namespace BookLogger.Desktop.ViewModels
             _context = context;
             _currentUser = currentUser;
             _bookSearchService = new BookSearchService();
+            _httpClient = new HttpClient();
 
-            // Initialize default values
+            // Create folder for local book images
+            _imageFolder = Path.Combine(Directory.GetCurrentDirectory(), "BookImages");
+            if (!Directory.Exists(_imageFolder))
+                Directory.CreateDirectory(_imageFolder);
+
+            // Initialize stats
             BooksCount = 0;
             ReviewsCount = 0;
             RatingsCount = 0;
             AverageRating = 0.0;
-
             LoadUserStatistics();
 
             SearchCommand = new RelayCommand(async _ => await PerformSearchAsync(), _ => !IsSearching && !string.IsNullOrWhiteSpace(SearchQuery));
         }
 
         // --- Bindable Properties (Existing) ---
+        private string _username;
+        public string Username
+        {
+            get => _username;
+            set { _username = value; OnPropertyChanged(); }
+        }
+
         public string ProfilePicturePath => _currentUser.ProfilePicturePath ?? "pack://application:,,,/Resources/default-icon.jpg";
 
         public int BooksCount { get; private set; }
@@ -42,7 +58,7 @@ namespace BookLogger.Desktop.ViewModels
         public int RatingsCount { get; private set; }
         public double AverageRating { get; private set; }
 
-        // --- Bindable Properties (New Search Integration) ---
+        // --- Bindable Properties (Search Integration) ---
         private string _searchQuery = "";
         private bool _isSearching;
         private ObservableCollection<BookResult> _searchResults = new();
@@ -50,37 +66,25 @@ namespace BookLogger.Desktop.ViewModels
         public string SearchQuery
         {
             get => _searchQuery;
-            set
-            {
-                _searchQuery = value;
-                OnPropertyChanged();
-            }
+            set { _searchQuery = value; OnPropertyChanged(); }
         }
 
         public ObservableCollection<BookResult> SearchResults
         {
             get => _searchResults;
-            set
-            {
-                _searchResults = value;
-                OnPropertyChanged();
-            }
+            set { _searchResults = value; OnPropertyChanged(); }
         }
 
         public bool IsSearching
         {
             get => _isSearching;
-            set
-            {
-                _isSearching = value;
-                OnPropertyChanged();
-            }
+            set { _isSearching = value; OnPropertyChanged(); }
         }
 
         // --- Commands ---
         public ICommand SearchCommand { get; }
 
-        // --- Load or compute statistics (from your version) ---
+        // --- Load user statistics ---
         private void LoadUserStatistics()
         {
             var userBooks = _context.Books.Where(b => b.UserId == _currentUser.Id).ToList();
@@ -91,14 +95,12 @@ namespace BookLogger.Desktop.ViewModels
                 ? userBooks.Where(b => b.Rating.HasValue).Average(b => b.Rating!.Value)
                 : 0;
 
-            // Optional: compute ReviewsCount here later
-
             OnPropertyChanged(nameof(BooksCount));
             OnPropertyChanged(nameof(RatingsCount));
             OnPropertyChanged(nameof(AverageRating));
         }
 
-        // --- Search functionality (new) ---
+        // --- Search functionality ---
         private async Task PerformSearchAsync()
         {
             if (string.IsNullOrWhiteSpace(SearchQuery))
@@ -108,9 +110,43 @@ namespace BookLogger.Desktop.ViewModels
 
             var results = await _bookSearchService.SearchBooksAsync(SearchQuery);
 
-            SearchResults = new ObservableCollection<BookResult>(results);
+            // Download and attach local image paths
+            foreach (var book in results)
+            {
+                if (!string.IsNullOrEmpty(book.ImageUrl))
+                {
+                    book.LocalImagePath = await DownloadImageAsync(book.ImageUrl, book.Title);
+                }
+                else
+                {
+                    book.LocalImagePath = "pack://application:,,,/Resources/default-book.jpg";
+                }
+            }
 
+            SearchResults = new ObservableCollection<BookResult>(results);
             IsSearching = false;
+        }
+
+        // --- Helper: download image locally ---
+        private async Task<string> DownloadImageAsync(string imageUrl, string title)
+        {
+            try
+            {
+                var safeFileName = string.Join("_", title.Split(Path.GetInvalidFileNameChars())) + ".jpg";
+                var filePath = Path.Combine(_imageFolder, safeFileName);
+
+                // Skip download if already exists
+                if (File.Exists(filePath))
+                    return filePath;
+
+                var bytes = await _httpClient.GetByteArrayAsync(imageUrl);
+                await File.WriteAllBytesAsync(filePath, bytes);
+                return filePath;
+            }
+            catch
+            {
+                return "pack://application:,,,/Resources/default-book.jpg";
+            }
         }
 
         // --- INotifyPropertyChanged implementation ---

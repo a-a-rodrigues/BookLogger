@@ -123,5 +123,4 @@ public class AuthService
         if (password != confirmPassword)
             throw new ArgumentException("Passwords do not match.");
     }
-
 }
