@@ -18,7 +18,7 @@ namespace BookLogger.Desktop.ViewModels
         private readonly BookSearchService _bookSearchService;
         private readonly HttpClient _httpClient;
         private readonly string _imageFolder;
-        private User _currentUser;
+        private readonly User _currentUser;
 
         // --- Constructor ---
         public DashboardViewModel(BookLoggerContext context, User currentUser)
@@ -28,37 +28,40 @@ namespace BookLogger.Desktop.ViewModels
             _bookSearchService = new BookSearchService();
             _httpClient = new HttpClient();
 
+            // Initialize username directly from current user
+            Username = _currentUser.Username ?? "Unknown User";
+
             // Create folder for local book images
             _imageFolder = Path.Combine(Directory.GetCurrentDirectory(), "BookImages");
             if (!Directory.Exists(_imageFolder))
                 Directory.CreateDirectory(_imageFolder);
 
             // Initialize stats
-            BooksCount = 0;
-            ReviewsCount = 0;
-            RatingsCount = 0;
-            AverageRating = 0.0;
             LoadUserStatistics();
 
-            SearchCommand = new RelayCommand(async _ => await PerformSearchAsync(), _ => !IsSearching && !string.IsNullOrWhiteSpace(SearchQuery));
+            SearchCommand = new RelayCommand(
+                async _ => await PerformSearchAsync(),
+                _ => !IsSearching && !string.IsNullOrWhiteSpace(SearchQuery)
+            );
         }
 
-        // --- Bindable Properties (Existing) ---
+        // --- Bindable Properties ---
         private string _username;
         public string Username
         {
             get => _username;
-            set { _username = value; OnPropertyChanged(); }
+            private set { _username = value; OnPropertyChanged(); }
         }
 
-        public string ProfilePicturePath => _currentUser.ProfilePicturePath ?? "pack://application:,,,/Resources/default-icon.jpg";
+        public string ProfilePicturePath =>
+            _currentUser.ProfilePicturePath ?? "pack://application:,,,/Resources/default-icon.jpg";
 
         public int BooksCount { get; private set; }
         public int ReviewsCount { get; private set; }
         public int RatingsCount { get; private set; }
         public double AverageRating { get; private set; }
 
-        // --- Bindable Properties (Search Integration) ---
+        // --- Search Integration ---
         private string _searchQuery = "";
         private bool _isSearching;
         private ObservableCollection<BookResult> _searchResults = new();
@@ -79,6 +82,13 @@ namespace BookLogger.Desktop.ViewModels
         {
             get => _isSearching;
             set { _isSearching = value; OnPropertyChanged(); }
+        }
+
+        private BookResult _selectedBook;
+        public BookResult SelectedBook
+        {
+            get => _selectedBook;
+            set { _selectedBook = value; OnPropertyChanged(); }
         }
 
         // --- Commands ---
@@ -114,13 +124,9 @@ namespace BookLogger.Desktop.ViewModels
             foreach (var book in results)
             {
                 if (!string.IsNullOrEmpty(book.ImageUrl))
-                {
                     book.LocalImagePath = await DownloadImageAsync(book.ImageUrl, book.Title);
-                }
                 else
-                {
                     book.LocalImagePath = "pack://application:,,,/Resources/default-book.jpg";
-                }
             }
 
             SearchResults = new ObservableCollection<BookResult>(results);
@@ -155,5 +161,7 @@ namespace BookLogger.Desktop.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+
     }
 }
