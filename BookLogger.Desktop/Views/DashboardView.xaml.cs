@@ -25,11 +25,24 @@ namespace BookLogger.Desktop.Views
 
         private void BookResult_DoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (sender is ListViewItem item && item.Content != null)
+            // Get the view model bound to this DashboardView
+            if (DataContext is DashboardViewModel viewModel && viewModel.SelectedBook != null)
             {
-                MessageBox.Show("Book selected!");
+                var selectedBook = viewModel.SelectedBook;
+
+                // Find the main window
+                var mainWindow = Application.Current.Windows
+                    .OfType<MainWindow>()
+                    .FirstOrDefault();
+
+                // Create the details page, passing in the selected book
+                var detailsPage = new BookDetailsView(selectedBook);
+
+                // Navigate to the page (assumes MainWindow has a Frame named MainFrame)
+                (mainWindow?.MainFrame)?.Navigate(detailsPage);
             }
         }
+
 
     }
 }
