@@ -49,7 +49,9 @@
                     </DockPanel>
 
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                        <ListView ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedBook, Mode=TwoWay}">
+                        <ListView ItemsSource="{Binding SearchResults}" 
+          SelectedItem="{Binding SelectedBook, Mode=TwoWay}" 
+          MouseDoubleClick="BookResult_DoubleClick">
                             <ListView.ItemContainerStyle>
                                 <Style TargetType="ListViewItem">
                                     <EventSetter Event="MouseDoubleClick" Handler="BookResult_DoubleClick"/>
@@ -64,7 +66,7 @@
                                                 <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14"/>
                                                 <TextBlock Text="{Binding Author}" Foreground="Gray" FontSize="12"/>
                                                 <TextBlock Text="{Binding FirstPublishYear, StringFormat='Published: {0}'}"
-                                                           Foreground="DarkGray" FontSize="12"/>
+                                   Foreground="DarkGray" FontSize="12"/>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
