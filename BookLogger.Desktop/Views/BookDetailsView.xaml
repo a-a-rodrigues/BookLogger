@@ -8,38 +8,59 @@
             <RowDefinition Height="*" />
             <!-- Main content -->
             <RowDefinition Height="Auto" />
-            <!-- Controls / Add button -->
+            <!-- User input / buttons -->
         </Grid.RowDefinitions>
+
+        <!-- TOP: Book Cover + Metadata -->
         <Grid Grid.Row="0" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200" />
-                <!-- Book cover -->
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="200"/>
+                <!-- Cover -->
+                <ColumnDefinition Width="*"/>
                 <!-- Metadata -->
             </Grid.ColumnDefinitions>
-            <!-- LEFT: Book Cover -->
-            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
-                <Image Source="{Binding SelectedBook.CoverUrl}" Stretch="Uniform" />
+
+            <!-- Book Cover -->
+            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="5"
+                    Width="180" Height="280" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Image Source="{Binding SelectedBook.CoverUrl}" Stretch="Uniform"/>
             </Border>
-            <!-- RIGHT: Metadata -->
-            <StackPanel Grid.Column="1" Margin="20,0,0,0">
+
+            <!-- Metadata -->
+            <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
                 <TextBlock Text="{Binding SelectedBook.Title}" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
                 <TextBlock Text="{Binding SelectedBook.Author}" FontSize="16" Margin="0,0,0,5"/>
                 <TextBlock Text="{Binding SelectedBook.ISBN, StringFormat='ISBN: {0}'}" FontSize="16" Margin="0,0,0,5"/>
                 <TextBlock Text="{Binding SelectedBook.Genre, StringFormat='Genre: {0}'}" FontSize="16" Margin="0,0,0,5"/>
                 <TextBlock Text="{Binding SelectedBook.FirstPublishYear, StringFormat='Published: {0}'}" FontSize="16" Margin="0,0,0,5"/>
-                <!-- Add more metadata fields as needed -->
             </StackPanel>
         </Grid>
+
         <!-- BOTTOM: User Inputs -->
         <StackPanel Grid.Row="1" Orientation="Vertical">
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                <TextBlock Text="Rating:" VerticalAlignment="Center" Width="60"/>
-                <ComboBox Width="100" ItemsSource="{Binding RatingOptions}" SelectedItem="{Binding UserRating}" />
-                <TextBlock Text="Date Read:" VerticalAlignment="Center" Margin="20,0,0,0"/>
-                <DatePicker SelectedDate="{Binding DateRead}" Width="150"/>
-            </StackPanel>
+            <!-- Rating + Date -->
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <!-- Rating label -->
+                    <ColumnDefinition Width="100"/>
+                    <!-- ComboBox -->
+                    <ColumnDefinition Width="20"/>
+                    <!-- Spacer -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Date label -->
+                    <ColumnDefinition Width="150"/>
+                    <!-- DatePicker -->
+                </Grid.ColumnDefinitions>
 
+                <TextBlock Grid.Column="0" Text="Rating:" VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding RatingOptions}" SelectedItem="{Binding UserRating}" />
+
+                <TextBlock Grid.Column="3" Text="Date Read:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <DatePicker Grid.Column="4" SelectedDate="{Binding DateRead}" />
+            </Grid>
+
+            <!-- Review -->
             <StackPanel Orientation="Vertical" Margin="0,0,0,10">
                 <TextBlock Text="Review:"/>
                 <TextBox Text="{Binding UserReview}" AcceptsReturn="True" Height="80" TextWrapping="Wrap"/>
@@ -48,9 +69,9 @@
             <!-- Buttons -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Cancel" Width="100" Height="35" Margin="0,0,10,0"
-                Command="{Binding CancelCommand}" />
+                        Command="{Binding CancelCommand}" />
                 <Button Content="Add to Library" Width="150" Height="35"
-                Command="{Binding AddBookCommand}" />
+                        Command="{Binding AddBookCommand}" />
             </StackPanel>
         </StackPanel>
     </Grid>

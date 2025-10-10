@@ -17,7 +17,6 @@ namespace BookLogger.Desktop.ViewModels
 
         public ICommand LoginCommand { get; }
         public ICommand RegisterCommand { get; }
-        public ICommand ResetDatabaseCommand { get; }
 
         private readonly AuthService _authService;
         private readonly string _dbPath;
@@ -72,40 +71,7 @@ namespace BookLogger.Desktop.ViewModels
                 }
             });
 
-            // Reset Database button
-            ResetDatabaseCommand = new RelayCommand(_ =>
-            {
-                var result = MessageBox.Show(
-                    "Are you sure you want to delete all data? This action cannot be undone.",
-                    "Confirm Reset",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    try
-                    {
-                        if (File.Exists(_dbPath))
-                        {
-                            File.Delete(_dbPath);
-                        }
-
-                        using (var newContext = new BookLoggerContext(
-                            new DbContextOptionsBuilder<BookLoggerContext>()
-                                .UseSqlite($"Filename={_dbPath}")
-                                .Options))
-                        {
-                            newContext.Database.EnsureCreated();
-                        }
-
-                        MessageBox.Show("Database has been successfully reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Failed to reset database: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            });
+            
         }
     }
 }

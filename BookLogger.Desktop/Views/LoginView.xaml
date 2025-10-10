@@ -37,12 +37,7 @@
                         Margin="0,0,0,10"/>
 
                 <!-- New Reset Database button -->
-                <Button Content="Reset Database"
-                        Command="{Binding ResetDatabaseCommand}"
-                        Background="LightCoral"
-                        Foreground="White"
-                        Margin="0,10,0,0"
-                        ToolTip="Deletes all BookLogger data and resets the database"/>
+                
             </StackPanel>
         </Border>
     </Grid>

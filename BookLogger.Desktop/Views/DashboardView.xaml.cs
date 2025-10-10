@@ -1,7 +1,7 @@
 ﻿using BookLogger.Data;
 using BookLogger.Data.Models;
 using BookLogger.Desktop.ViewModels;
-using System.DirectoryServices;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,12 +20,12 @@ namespace BookLogger.Desktop.Views
         public DashboardView(BookLoggerContext context, User user)
         {
             InitializeComponent();
-            DataContext = new DashboardViewModel(context, user);
+            var viewModel = new DashboardViewModel(context, user);
+            DataContext = viewModel;
         }
 
         private void BookResult_DoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // Get the view model bound to this DashboardView
             if (DataContext is DashboardViewModel viewModel && viewModel.SelectedBook != null)
             {
                 var selectedBook = viewModel.SelectedBook;
@@ -35,14 +35,20 @@ namespace BookLogger.Desktop.Views
                     .OfType<MainWindow>()
                     .FirstOrDefault();
 
-                // Create the details page, passing in the selected book
-                var detailsPage = new BookDetailsView(selectedBook);
+                if (mainWindow != null)
+                {
+                    // Create the BookDetailsView, passing context, current user, and refresh callback
+                    var detailsPage = new BookDetailsView(
+                        selectedBook,
+                        viewModel._context,                // Ensure DashboardViewModel exposes 'Context'
+                        viewModel._currentUser,            // Ensure DashboardViewModel exposes 'CurrentUser'
+                        () => viewModel.RefreshUserStatistics()  // Callback to refresh stats
+                    );
 
-                // Navigate to the page (assumes MainWindow has a Frame named MainFrame)
-                (mainWindow?.MainFrame)?.Navigate(detailsPage);
+                    // Navigate to the BookDetailsView
+                    mainWindow.MainFrame.Navigate(detailsPage);
+                }
             }
         }
-
-
     }
 }
