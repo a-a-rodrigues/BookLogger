@@ -7,14 +7,12 @@ using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
 
 namespace BookLogger.Desktop.ViewModels
@@ -33,8 +31,6 @@ namespace BookLogger.Desktop.ViewModels
         public ICommand ResetDatabaseCommand { get; }
         public ICommand LogoutCommand { get; }
 
-
-
         public DashboardViewModel(BookLoggerContext context, User currentUser)
         {
             _context = context;
@@ -49,6 +45,7 @@ namespace BookLogger.Desktop.ViewModels
                 Directory.CreateDirectory(_imageFolder);
 
             RefreshUserStatistics();
+            LoadUserBooks();
 
             SearchCommand = new RelayCommand(
                 async _ => await PerformSearchAsync(),
@@ -57,7 +54,6 @@ namespace BookLogger.Desktop.ViewModels
 
             ChangeProfilePictureCommand = new RelayCommand(_ => ChangeProfilePicture());
 
-            // Reset Database button
             ResetDatabaseCommand = new RelayCommand(_ =>
             {
                 var _dbPath = @"C:/Users/Augie/Documents/Github/BookLogger/BookLogger.Data/booklogger.db";
@@ -73,26 +69,21 @@ namespace BookLogger.Desktop.ViewModels
 
                 try
                 {
-                    // Dispose any open context
                     _context?.Dispose();
 
-                    // Recreate the database safely using EF Core
                     var options = new DbContextOptionsBuilder<BookLoggerContext>()
                         .UseSqlite($"Filename={_dbPath}")
                         .Options;
 
                     using (var newContext = new BookLoggerContext(options))
                     {
-                        newContext.Database.EnsureDeleted();   // safely deletes database
-                        newContext.Database.EnsureCreated();   // recreates an empty DB
+                        newContext.Database.EnsureDeleted();
+                        newContext.Database.EnsureCreated();
                     }
 
-                    // Navigate back to the login screen
                     var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
                     if (mainWindow != null)
-                    {
                         mainWindow.MainFrame.Navigate(new LoginView());
-                    }
 
                     MessageBox.Show("Database has been successfully reset.", "Reset Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -104,11 +95,9 @@ namespace BookLogger.Desktop.ViewModels
 
             LogoutCommand = new RelayCommand(_ =>
             {
-                    var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
-                    if (mainWindow != null)
-                    {
-                        mainWindow.MainFrame.Navigate(new LoginView());
-                    }
+                var mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+                if (mainWindow != null)
+                    mainWindow.MainFrame.Navigate(new LoginView());
             });
         }
 
@@ -167,6 +156,20 @@ namespace BookLogger.Desktop.ViewModels
             set { _isSearching = value; OnPropertyChanged(); }
         }
 
+        private ObservableCollection<BookMetadata> _userBooks;
+        public ObservableCollection<BookMetadata> UserBooks
+        {
+            get => _userBooks;
+            set { _userBooks = value; OnPropertyChanged(); }
+        }
+
+        private BookMetadata _selectedUserBook;
+        public BookMetadata SelectedUserBook
+        {
+            get => _selectedUserBook;
+            set { _selectedUserBook = value; OnPropertyChanged(); }
+        }
+
         private ObservableCollection<BookMetadata> _searchResults = new();
         public ObservableCollection<BookMetadata> SearchResults
         {
@@ -181,20 +184,43 @@ namespace BookLogger.Desktop.ViewModels
             set { _selectedBook = value; OnPropertyChanged(); }
         }
 
-        // --- Methods to update statistics dynamically ---
+        // --- Methods ---
         public void RefreshUserStatistics()
         {
-            var userBooks = _context.Books.Where(b => b.UserId == _currentUser.Id).ToList();
+            // Include metadata so you can access Title, Author, CoverUrl
+            var userBooks = _context.Books
+                .Include(b => b.Metadata)
+                .Where(b => b.UserId == _currentUser.Id)
+                .ToList();
 
+            // Update stats
             BooksCount = userBooks.Count;
             ReviewsCount = userBooks.Count(b => !string.IsNullOrWhiteSpace(b.Review));
             RatingsCount = userBooks.Count(b => b.Rating.HasValue);
             AverageRating = RatingsCount > 0
                 ? userBooks.Where(b => b.Rating.HasValue).Average(b => b.Rating!.Value)
                 : 0;
+
+            // Update UserBooks collection with metadata
+            UserBooks = new ObservableCollection<BookMetadata>(
+                userBooks.Select(b => b.Metadata)
+                         .OrderBy(m => m.Title)
+            );
         }
 
-        // --- Search functionality ---
+
+        private void LoadUserBooks()
+        {
+            var userBooks = _context.Books
+                .Where(b => b.UserId == _currentUser.Id)
+                .Include(b => b.Metadata)
+                .Select(b => b.Metadata)
+                .OrderBy(m => m.Title)
+                .ToList();
+
+            UserBooks = new ObservableCollection<BookMetadata>(userBooks);
+        }
+
         private async Task PerformSearchAsync()
         {
             if (string.IsNullOrWhiteSpace(SearchQuery)) return;
@@ -203,17 +229,12 @@ namespace BookLogger.Desktop.ViewModels
 
             var results = await _bookSearchService.SearchBooksAsync(SearchQuery);
 
-            // Download and attach local image paths
             foreach (var book in results)
-            {
                 book.CoverUrl = await GetLocalImagePathAsync(book.CoverUrl, book.Title);
-            }
 
             SearchResults = new ObservableCollection<BookMetadata>(results);
             IsSearching = false;
         }
-
-        
 
         private async Task<string> GetLocalImagePathAsync(string? imageUrl, string title)
         {
@@ -275,5 +296,4 @@ namespace BookLogger.Desktop.ViewModels
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-
 }

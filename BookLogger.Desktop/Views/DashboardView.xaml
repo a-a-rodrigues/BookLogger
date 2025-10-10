@@ -128,7 +128,7 @@
                 </Grid>
             </Border>
 
-            <!-- RECENT ACTIVITY SECTION -->
+            
             <Border Grid.Row="1" Background="White" CornerRadius="10" Padding="20" BorderBrush="#DDD" BorderThickness="1">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -136,17 +136,26 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="Recent Activity" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="0" Text="Your Books" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding RecentActivity}">
-                            <ItemsControl.ItemTemplate>
+                        <ListView ItemsSource="{Binding UserBooks}" 
+                      SelectedItem="{Binding SelectedUserBook, Mode=TwoWay}">
+                            <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <Border BorderBrush="#EEE" BorderThickness="0,0,0,1" Padding="5">
-                                        <TextBlock Text="{Binding}" Foreground="Gray"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,5,0,5">
+                                            <Image Source="{Binding CoverUrl}" Width="60" Height="90" Stretch="UniformToFill" Margin="0,0,10,0"/>
+                                            <StackPanel Orientation="Vertical">
+                                                <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14"/>
+                                                <TextBlock Text="{Binding Author}" Foreground="Gray" FontSize="12"/>
+                                                <TextBlock Text="{Binding FirstPublishYear, StringFormat='Published: {0}'}"
+                                               Foreground="DarkGray" FontSize="12"/>
+                                            </StackPanel>
+                                        </StackPanel>
                                     </Border>
                                 </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                            </ListView.ItemTemplate>
+                        </ListView>
                     </ScrollViewer>
                 </Grid>
             </Border>
