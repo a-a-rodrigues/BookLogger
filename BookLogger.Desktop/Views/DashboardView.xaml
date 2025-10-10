@@ -14,10 +14,33 @@
         <!-- LEFT SIDE: Profile/Stats -->
         <StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Top">
             <TextBlock Text="{Binding Username, StringFormat='Welcome, {0}!'}" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15"/>
-            <Border Width="150" Height="150" CornerRadius="75" BorderBrush="Gray" BorderThickness="2" Margin="0,0,0,20">
-                <Image Source="{Binding ProfilePicturePath}" Stretch="UniformToFill" />
-            </Border>
-            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+
+            <!-- Profile Picture Button -->
+            <Button Width="150" Height="150"
+        BorderThickness="2"
+        BorderBrush="Gray"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Top"
+        Command="{Binding ChangeProfilePictureCommand}"
+        Background="Transparent"
+        Padding="0"
+        ToolTip="Click to change profile picture">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="75" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <Image Source="{Binding ProfilePicturePath}" Stretch="UniformToFill">
+                                <!-- Clip to circle -->
+                                <Image.Clip>
+                                    <EllipseGeometry Center="75,75" RadiusX="75" RadiusY="75"/>
+                                </Image.Clip>
+                            </Image>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0,20,0,0">
                 <TextBlock Text="{Binding BooksCount, StringFormat='Books: {0}'}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>
                 <TextBlock Text="{Binding ReviewsCount, StringFormat='Reviews: {0}'}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>
                 <TextBlock Text="{Binding RatingsCount, StringFormat='Ratings: {0}'}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>

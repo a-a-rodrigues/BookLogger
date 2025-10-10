@@ -1,6 +1,7 @@
 ﻿using BookLogger.Core.Services;
 using BookLogger.Data;
 using BookLogger.Data.Models;
+using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -19,6 +20,8 @@ namespace BookLogger.Desktop.ViewModels
         private readonly HttpClient _httpClient;
         private readonly string _imageFolder;
         private readonly User _currentUser;
+        public ICommand ChangeProfilePictureCommand { get; }
+
 
         public DashboardViewModel(BookLoggerContext context, User currentUser)
         {
@@ -39,6 +42,8 @@ namespace BookLogger.Desktop.ViewModels
                 async _ => await PerformSearchAsync(),
                 _ => !IsSearching && !string.IsNullOrWhiteSpace(SearchQuery)
             );
+
+            ChangeProfilePictureCommand = new RelayCommand(_ => ChangeProfilePicture());
         }
 
         // --- Bindable Properties ---
@@ -50,7 +55,9 @@ namespace BookLogger.Desktop.ViewModels
         }
 
         public string ProfilePicturePath =>
-            _currentUser.ProfilePicturePath ?? "pack://application:,,,/Resources/default-icon.jpg";
+        !string.IsNullOrWhiteSpace(_currentUser.ProfilePicturePath) && File.Exists(_currentUser.ProfilePicturePath)
+        ? _currentUser.ProfilePicturePath
+        : "pack://application:,,,/Resources/default-icon.jpg";
 
         public int BooksCount { get; private set; }
         public int ReviewsCount { get; private set; }
@@ -146,6 +153,43 @@ namespace BookLogger.Desktop.ViewModels
                 return "pack://application:,,,/Resources/default-book.jpg";
             }
         }
+
+        private void ChangeProfilePicture()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Select Profile Picture",
+                Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp;*.gif",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    // Copy the selected file to the application folder
+                    var ext = Path.GetExtension(dialog.FileName);
+                    var safeFileName = $"{_currentUser.Id}_profile{ext}";
+                    var destination = Path.Combine(_imageFolder, safeFileName);
+
+                    File.Copy(dialog.FileName, destination, true);
+
+                    // Update user object and persist
+                    _currentUser.ProfilePicturePath = destination;
+                    _context.Users.Update(_currentUser);
+                    _context.SaveChanges();
+
+                    // Notify the UI
+                    OnPropertyChanged(nameof(ProfilePicturePath));
+                }
+                catch (Exception ex)
+                {
+                    // Optional: handle error (e.g., show message to user)
+                    Console.WriteLine($"Failed to update profile picture: {ex.Message}");
+                }
+            }
+        }
+
 
         // --- INotifyPropertyChanged ---
         public event PropertyChangedEventHandler? PropertyChanged;
