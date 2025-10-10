@@ -1,4 +1,5 @@
 ﻿using BookLogger.Core.Services;
+using BookLogger.Data.Models;
 using BookLogger.Desktop.ViewModels;
 using System.Windows.Controls;
 
@@ -8,7 +9,7 @@ namespace BookLogger.Desktop.Views
     {
         public BookDetailsViewModel ViewModel { get; }
 
-        public BookDetailsView(BookResult book)
+        public BookDetailsView(BookMetadata book)
         {
             InitializeComponent();
             ViewModel = new BookDetailsViewModel(book);

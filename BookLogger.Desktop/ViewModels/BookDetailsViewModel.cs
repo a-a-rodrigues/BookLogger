@@ -1,5 +1,4 @@
-﻿using BookLogger.Core.Services;
-using BookLogger.Data.Models;
+﻿using BookLogger.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,7 +10,12 @@ namespace BookLogger.Desktop.ViewModels
     public class BookDetailsViewModel : INotifyPropertyChanged
     {
         // The selected book
-        public BookResult SelectedBook { get; }
+        public BookMetadata SelectedBook { get; }
+
+        // --- Bindable image property ---
+        public string BookImage => !string.IsNullOrEmpty(SelectedBook.CoverUrl)
+            ? SelectedBook.CoverUrl
+            : "pack://application:,,,/Resources/default-book.jpg";
 
         // --- User input properties ---
         private int? _userRating;
@@ -45,7 +49,7 @@ namespace BookLogger.Desktop.ViewModels
         // Event to notify page to close or navigate back
         public event Action? RequestClose;
 
-        public BookDetailsViewModel(BookResult book)
+        public BookDetailsViewModel(BookMetadata book)
         {
             SelectedBook = book;
 
@@ -55,8 +59,7 @@ namespace BookLogger.Desktop.ViewModels
 
         private void AddBookToLibrary()
         {
-            // Here, you would normally save the book to the database with optional fields:
-            // SelectedBook, UserRating, UserReview, DateRead
+            // Save book to database here with optional fields: UserRating, UserReview, DateRead
             // For now, just simulate the action
             Console.WriteLine($"Added '{SelectedBook.Title}' to library.");
             Console.WriteLine($"Rating: {UserRating}, Review: {UserReview}, DateRead: {DateRead}");

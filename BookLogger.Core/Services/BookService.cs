@@ -11,12 +11,13 @@ public class BookService
         _context = context;
     }
 
-    public async Task<Book> AddBookAsync(int userId, string title, string author, string? isbn = null, string? genre = null, string? coverUrl = null)
+    public async Task<Book> AddBookAsync(int userId, string title, string author, string isbn, string? genre = null, string? coverUrl = null)
     {
         if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(author))
             throw new ArgumentException("Title and author are required.");
 
-        var metadata = await _context.BookMetadatas.FirstOrDefaultAsync(m => m.Title == title && m.Author == author);
+        var metadata = await _context.BookMetadatas
+    .FirstOrDefaultAsync(m => m.Title == title && m.Author == author && m.ISBN == isbn);
 
         if (metadata == null)
         {

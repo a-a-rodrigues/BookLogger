@@ -15,28 +15,24 @@ namespace BookLogger.Desktop.ViewModels
     public class DashboardViewModel : INotifyPropertyChanged
     {
         private readonly BookLoggerContext _context;
-        private readonly BookSearchService _bookSearchService;
+        private readonly OpenLibraryService _bookSearchService;
         private readonly HttpClient _httpClient;
         private readonly string _imageFolder;
         private readonly User _currentUser;
 
-        // --- Constructor ---
         public DashboardViewModel(BookLoggerContext context, User currentUser)
         {
             _context = context;
             _currentUser = currentUser;
-            _bookSearchService = new BookSearchService();
+            _bookSearchService = new OpenLibraryService();
             _httpClient = new HttpClient();
 
-            // Initialize username directly from current user
             Username = _currentUser.Username ?? "Unknown User";
 
-            // Create folder for local book images
             _imageFolder = Path.Combine(Directory.GetCurrentDirectory(), "BookImages");
             if (!Directory.Exists(_imageFolder))
                 Directory.CreateDirectory(_imageFolder);
 
-            // Initialize stats
             LoadUserStatistics();
 
             SearchCommand = new RelayCommand(
@@ -61,10 +57,9 @@ namespace BookLogger.Desktop.ViewModels
         public int RatingsCount { get; private set; }
         public double AverageRating { get; private set; }
 
-        // --- Search Integration ---
         private string _searchQuery = "";
         private bool _isSearching;
-        private ObservableCollection<BookResult> _searchResults = new();
+        private ObservableCollection<BookMetadata> _searchResults = new();
 
         public string SearchQuery
         {
@@ -72,7 +67,7 @@ namespace BookLogger.Desktop.ViewModels
             set { _searchQuery = value; OnPropertyChanged(); }
         }
 
-        public ObservableCollection<BookResult> SearchResults
+        public ObservableCollection<BookMetadata> SearchResults
         {
             get => _searchResults;
             set { _searchResults = value; OnPropertyChanged(); }
@@ -84,8 +79,8 @@ namespace BookLogger.Desktop.ViewModels
             set { _isSearching = value; OnPropertyChanged(); }
         }
 
-        private BookResult _selectedBook;
-        public BookResult SelectedBook
+        private BookMetadata _selectedBook;
+        public BookMetadata SelectedBook
         {
             get => _selectedBook;
             set { _selectedBook = value; OnPropertyChanged(); }
@@ -94,7 +89,7 @@ namespace BookLogger.Desktop.ViewModels
         // --- Commands ---
         public ICommand SearchCommand { get; }
 
-        // --- Load user statistics ---
+        // --- User Statistics ---
         private void LoadUserStatistics()
         {
             var userBooks = _context.Books.Where(b => b.UserId == _currentUser.Id).ToList();
@@ -113,8 +108,7 @@ namespace BookLogger.Desktop.ViewModels
         // --- Search functionality ---
         private async Task PerformSearchAsync()
         {
-            if (string.IsNullOrWhiteSpace(SearchQuery))
-                return;
+            if (string.IsNullOrWhiteSpace(SearchQuery)) return;
 
             IsSearching = true;
 
@@ -123,30 +117,28 @@ namespace BookLogger.Desktop.ViewModels
             // Download and attach local image paths
             foreach (var book in results)
             {
-                if (!string.IsNullOrEmpty(book.ImageUrl))
-                    book.LocalImagePath = await DownloadImageAsync(book.ImageUrl, book.Title);
-                else
-                    book.LocalImagePath = "pack://application:,,,/Resources/default-book.jpg";
+                book.CoverUrl = await GetLocalImagePathAsync(book.CoverUrl, book.Title);
             }
 
-            SearchResults = new ObservableCollection<BookResult>(results);
+            SearchResults = new ObservableCollection<BookMetadata>(results);
             IsSearching = false;
         }
 
-        // --- Helper: download image locally ---
-        private async Task<string> DownloadImageAsync(string imageUrl, string title)
+        private async Task<string> GetLocalImagePathAsync(string? imageUrl, string title)
         {
+            if (string.IsNullOrEmpty(imageUrl))
+                return "pack://application:,,,/Resources/default-book.jpg";
+
             try
             {
                 var safeFileName = string.Join("_", title.Split(Path.GetInvalidFileNameChars())) + ".jpg";
                 var filePath = Path.Combine(_imageFolder, safeFileName);
 
-                // Skip download if already exists
-                if (File.Exists(filePath))
-                    return filePath;
+                if (File.Exists(filePath)) return filePath;
 
                 var bytes = await _httpClient.GetByteArrayAsync(imageUrl);
                 await File.WriteAllBytesAsync(filePath, bytes);
+
                 return filePath;
             }
             catch
@@ -155,13 +147,9 @@ namespace BookLogger.Desktop.ViewModels
             }
         }
 
-        // --- INotifyPropertyChanged implementation ---
+        // --- INotifyPropertyChanged ---
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
